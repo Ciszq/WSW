@@ -1,0 +1,14 @@
+﻿  main.cpp
+c:\users\student\desktop\trainingcl\trainingcl\main.cpp(16): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+c:\users\student\desktop\trainingcl\trainingcl\cimg.h(14777): warning C4319: '~': zero extending 'unsigned long' to 'const double' of greater size
+  c:\users\student\desktop\trainingcl\trainingcl\cimg.h(14240): note: while compiling class template member function 'unsigned int cimg_library::CImg<float>::_cimg_math_parser::compile(char *,char *,unsigned int *)'
+  c:\users\student\desktop\trainingcl\trainingcl\cimg.h(14167): note: see reference to function template instantiation 'unsigned int cimg_library::CImg<float>::_cimg_math_parser::compile(char *,char *,unsigned int *)' being compiled
+  c:\users\student\desktop\trainingcl\trainingcl\cimg.h(18031): note: see reference to class template instantiation 'cimg_library::CImg<float>::_cimg_math_parser' being compiled
+  c:\users\student\desktop\trainingcl\trainingcl\cimg.h(18021): note: while compiling class template member function 'double cimg_library::CImg<float>::_eval(cimg_library::CImg<float> *const ,const char *const ,const double,const double,const double,const double,const cimg_library::CImgList<float> *const ,cimg_library::CImgList<float> *const ) const'
+  c:\users\student\desktop\trainingcl\trainingcl\cimg.h(18016): note: see reference to function template instantiation 'double cimg_library::CImg<float>::_eval(cimg_library::CImg<float> *const ,const char *const ,const double,const double,const double,const double,const cimg_library::CImgList<float> *const ,cimg_library::CImgList<float> *const ) const' being compiled
+  c:\users\student\desktop\trainingcl\trainingcl\cimg.h(29711): note: see reference to class template instantiation 'cimg_library::CImg<float>' being compiled
+  c:\users\student\desktop\trainingcl\trainingcl\cimg.h(52397): note: see reference to class template instantiation 'cimg_library::CImg<char>' being compiled
+c:\users\student\desktop\trainingcl\trainingcl\cimg.h(15665): warning C4319: '~': zero extending 'unsigned long' to 'double' of greater size
+  c:\users\student\desktop\trainingcl\trainingcl\cimg.h(15664): note: while compiling class template member function 'double cimg_library::CImg<float>::_cimg_math_parser::mp_bitwise_not(cimg_library::CImg<float>::_cimg_math_parser &)'
+  c:\users\student\desktop\trainingcl\trainingcl\cimg.h(14778): note: see reference to function template instantiation 'double cimg_library::CImg<float>::_cimg_math_parser::mp_bitwise_not(cimg_library::CImg<float>::_cimg_math_parser &)' being compiled
+  TrainingCL.vcxproj -> C:\Users\Student\Desktop\TrainingCL\x64\Debug\TrainingCL.exe

@@ -1,0 +1,26 @@
+﻿Build started 2016-01-04 20:40:36.
+     1>Project "C:\Users\Danio\documents\visual studio 2015\Projects\TrainingCL\TrainingCL\TrainingCL.vcxproj" on node 2 (Rebuild target(s)).
+     1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppClean.targets(76,5): warning : Access to the path 'c:\users\danio\documents\visual studio 2015\projects\trainingcl\x64\debug\trainingcl.exe' is denied.
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\x86_amd64\CL.exe /c /I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include" /ZI /nologo /W3 /WX- /sdl /Od /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"x64\Debug\\" /Fd"x64\Debug\vc140.pdb" /Gd /TP /errorReport:prompt main.cpp
+         main.cpp
+     1>c:\users\danio\documents\visual studio 2015\projects\trainingcl\trainingcl\main.cpp(16): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+     1>c:\users\danio\documents\visual studio 2015\projects\trainingcl\trainingcl\cimg.h(14777): warning C4319: '~': zero extending 'unsigned long' to 'const double' of greater size
+         c:\users\danio\documents\visual studio 2015\projects\trainingcl\trainingcl\cimg.h(14240): note: while compiling class template member function 'unsigned int cimg_library::CImg<float>::_cimg_math_parser::compile(char *,char *,unsigned int *)'
+         c:\users\danio\documents\visual studio 2015\projects\trainingcl\trainingcl\cimg.h(14167): note: see reference to function template instantiation 'unsigned int cimg_library::CImg<float>::_cimg_math_parser::compile(char *,char *,unsigned int *)' being compiled
+         c:\users\danio\documents\visual studio 2015\projects\trainingcl\trainingcl\cimg.h(18031): note: see reference to class template instantiation 'cimg_library::CImg<float>::_cimg_math_parser' being compiled
+         c:\users\danio\documents\visual studio 2015\projects\trainingcl\trainingcl\cimg.h(18021): note: while compiling class template member function 'double cimg_library::CImg<float>::_eval(cimg_library::CImg<float> *const ,const char *const ,const double,const double,const double,const double,const cimg_library::CImgList<float> *const ,cimg_library::CImgList<float> *const ) const'
+         c:\users\danio\documents\visual studio 2015\projects\trainingcl\trainingcl\cimg.h(18016): note: see reference to function template instantiation 'double cimg_library::CImg<float>::_eval(cimg_library::CImg<float> *const ,const char *const ,const double,const double,const double,const double,const cimg_library::CImgList<float> *const ,cimg_library::CImgList<float> *const ) const' being compiled
+         c:\users\danio\documents\visual studio 2015\projects\trainingcl\trainingcl\cimg.h(29711): note: see reference to class template instantiation 'cimg_library::CImg<float>' being compiled
+         c:\users\danio\documents\visual studio 2015\projects\trainingcl\trainingcl\cimg.h(52397): note: see reference to class template instantiation 'cimg_library::CImg<char>' being compiled
+     1>c:\users\danio\documents\visual studio 2015\projects\trainingcl\trainingcl\cimg.h(15665): warning C4319: '~': zero extending 'unsigned long' to 'double' of greater size
+         c:\users\danio\documents\visual studio 2015\projects\trainingcl\trainingcl\cimg.h(15664): note: while compiling class template member function 'double cimg_library::CImg<float>::_cimg_math_parser::mp_bitwise_not(cimg_library::CImg<float>::_cimg_math_parser &)'
+         c:\users\danio\documents\visual studio 2015\projects\trainingcl\trainingcl\cimg.h(14778): note: see reference to function template instantiation 'double cimg_library::CImg<float>::_cimg_math_parser::mp_bitwise_not(cimg_library::CImg<float>::_cimg_math_parser &)' being compiled
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\x86_amd64\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Danio\documents\visual studio 2015\Projects\TrainingCL\x64\Debug\TrainingCL.exe" /INCREMENTAL /NOLOGO /LIBPATH:"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\lib\x64" OpenCL.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /Debug /PDB:"C:\Users\Danio\documents\visual studio 2015\Projects\TrainingCL\x64\Debug\TrainingCL.pdb" /SUBSYSTEM:CONSOLE /STACK:"128000000" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Danio\documents\visual studio 2015\Projects\TrainingCL\x64\Debug\TrainingCL.lib" /MACHINE:X64 x64\Debug\main.obj
+     1>LINK : fatal error LNK1104: cannot open file 'C:\Users\Danio\documents\visual studio 2015\Projects\TrainingCL\x64\Debug\TrainingCL.exe'
+     1>Done Building Project "C:\Users\Danio\documents\visual studio 2015\Projects\TrainingCL\TrainingCL\TrainingCL.vcxproj" (Rebuild target(s)) -- FAILED.
+
+Build FAILED.
+
+Time Elapsed 00:00:02.22
