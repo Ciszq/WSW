@@ -11,6 +11,8 @@ using namespace cimg_library;
 #define cimg_imagepath "img/"
 #endif
 
+using namespace std;
+
 void randomizeArray(cl_int* data, size_t vectorSize, int rate)
 {
 	srand(rate * time(NULL));
@@ -20,11 +22,27 @@ void randomizeArray(cl_int* data, size_t vectorSize, int rate)
 	}
 }
 
-int main(int argc, char **argv)
+void ExportToBmpFile(const int width, const int height, cl_int* RedMatrix, cl_int* GreenMatrix, cl_int* BlueMatrix, char* filename)
 {
-	cl_int error = CL_SUCCESS;
+	//int jimmy[height][width];
+	FILE *fa = fopen(filename, "wb");
+	fprintf(fa, "P6\n%i %i 255\n", width, height);
+	for (int x = 0; x < width; x++)
+	{
+		for (int y = 0; y < height; y++)
+		{
+			//jimmy[]
+			fputc(RedMatrix[x*height + y], fa);   // 0 .. 255
+			fputc(GreenMatrix[y*width + x], fa); // 0 .. 255
+			fputc(BlueMatrix[y*width + x], fa);  // 0 .. 255
+		}
+	}
 
-	// Get platform number.
+	fclose(fa);
+}
+
+cl_int initGraphicComponents(cl_int& error, cl_platform_id*& platformIds, cl_uint& deviceNumber, cl_device_id*& deviceIds)
+{
 	cl_uint platformNumber = 0;
 
 	error = clGetPlatformIDs(0, NULL, &platformNumber);
@@ -32,12 +50,11 @@ int main(int argc, char **argv)
 	if (0 == platformNumber)
 	{
 		std::cout << "No OpenCL platforms found." << std::endl;
-
-		return 0;
+		return true;
 	}
 
 	// Get platform identifiers.
-	cl_platform_id* platformIds = new cl_platform_id[platformNumber];
+	platformIds = new cl_platform_id[platformNumber];
 
 	error = clGetPlatformIDs(platformNumber, platformIds, NULL);
 
@@ -60,9 +77,9 @@ int main(int argc, char **argv)
 	}
 
 	// Get device count.
-	cl_uint deviceNumber;
 
-	error = clGetDeviceIDs(platformIds[2], CL_DEVICE_TYPE_GPU, 0, NULL, &deviceNumber);
+	auto platformIndex = 1;
+	error = clGetDeviceIDs(platformIds[platformIndex], CL_DEVICE_TYPE_GPU, 0, NULL, &deviceNumber);
 
 	if (0 == deviceNumber)
 	{
@@ -70,9 +87,9 @@ int main(int argc, char **argv)
 	}
 
 	// Get device identifiers.
-	cl_device_id* deviceIds = new cl_device_id[deviceNumber];
+	deviceIds = new cl_device_id[deviceNumber];
 
-	error = clGetDeviceIDs(platformIds[2], CL_DEVICE_TYPE_GPU, deviceNumber, deviceIds, &deviceNumber);
+	error = clGetDeviceIDs(platformIds[platformIndex], CL_DEVICE_TYPE_GPU, deviceNumber, deviceIds, &deviceNumber);
 
 	// Get device info.
 	for (cl_uint i = 0; i < deviceNumber; ++i)
@@ -95,33 +112,44 @@ int main(int argc, char **argv)
 	}
 
 	std::cout << std::endl;
+	return error;
+}
+
+int main(int argc, char **argv)
+{
+	cl_int error;
+	cl_platform_id* platformIds;
+	cl_uint deviceNumber;
+	cl_device_id* deviceIds;
+
+	error = initGraphicComponents(error, platformIds, deviceNumber, deviceIds);
 
 	// Define number of local workers
 	size_t localWorkSize = 32;
 	time_t tstart, tend;
 
 	// Allocate and initialize host arrays
-	const size_t hVectorSize = 1920;
-	const size_t wVectorSize = 1080;
+	const size_t hVectorSize = 3;
+	const size_t wVectorSize = 2;
 	const size_t matrixSize = wVectorSize * hVectorSize;
 	unsigned int matrix_mem_size = sizeof(cl_int) * matrixSize;
 	int matrix_size = hVectorSize*wVectorSize;
 	int mem_matrix_size = sizeof(cl_int) * matrix_size;
-	cl_int* R_A = (cl_int*)malloc(mem_matrix_size);
-	cl_int* R_B = (cl_int*)malloc(mem_matrix_size);
-	cl_int* G_A = (cl_int*)malloc(mem_matrix_size);
-	cl_int* G_B = (cl_int*)malloc(mem_matrix_size);
-	cl_int* B_A = (cl_int*)malloc(mem_matrix_size);
-	cl_int* B_B = (cl_int*)malloc(mem_matrix_size);
-	cl_int* R_C = (cl_int*)malloc(mem_matrix_size);
-	cl_int* G_C = (cl_int*)malloc(mem_matrix_size);
-	cl_int* B_C = (cl_int*)malloc(mem_matrix_size);
+	cl_int FirstImageRed[matrixSize];
+	cl_int* SecondImageRed = (cl_int*)malloc(mem_matrix_size);
+	cl_int* FirstImageGreen = (cl_int*)malloc(mem_matrix_size);
+	cl_int* SecondImageGreen = (cl_int*)malloc(mem_matrix_size);
+	cl_int* FirstImageBlue = (cl_int*)malloc(mem_matrix_size);
+	cl_int* SecondImageBue = (cl_int*)malloc(mem_matrix_size);
+	cl_int* ResultImageRed = (cl_int*)malloc(mem_matrix_size);
+	cl_int* ResultImageGreen = (cl_int*)malloc(mem_matrix_size);
+	cl_int* ResultImageBlue = (cl_int*)malloc(mem_matrix_size);
 
 
 
 	// Read image filename from the command line (or set it to "img/parrot.ppm" if option '-i' is not provided)
-	const char* file_a = cimg_option("-i", cimg_imagepath "a.bmp", "Input image");
-	const char* file_b = cimg_option("-i", cimg_imagepath "b.bmp", "Input image");
+	const char* file_a = cimg_option("-i", cimg_imagepath "test.bmp", "Input image");
+	const char* file_b = cimg_option("-i", cimg_imagepath "test.bmp", "Input image");
 
 	// Load an image, transform it to a color image (if necessary) and blur it with the standard deviation sigma
 	const CImg<unsigned char> image_a = CImg<>(file_a).normalize(0, 255);
@@ -146,20 +174,20 @@ int main(int argc, char **argv)
 	{
 		for (int y = 0; y < height; y++)
 		{
-			R_A[x*height+y] = image_a(x, y, 0);
-			G_A[x*height + y] = image_a(x, y, 1),
-			B_A[x*height + y] = image_a(x, y, 2);
-			R_B[x*height + y] = image_b(x, y, 0);
-			G_B[x*height + y] = image_b(x, y, 1),
-			B_B[x*height + y] = image_b(x, y, 2);
+			FirstImageRed[x*height+y] = (cl_int)(image_a(x, y, 0));
+			FirstImageGreen[x*height + y] = image_a(x, y, 1),
+			FirstImageBlue[x*height + y] = image_a(x, y, 2);
+			SecondImageRed[x*height + y] = image_b(x, y, 0);
+			SecondImageGreen[x*height + y] = image_b(x, y, 1),
+			SecondImageBue[x*height + y] = image_b(x, y, 2);
 		}
 	}
-	std::cout << "Red A:     " << R_A[50000] << std::endl;
-	std::cout << "Red B:     " << R_B[50000] << std::endl;
-	std::cout << "Green A:   " << G_A[50000] << std::endl;
-	std::cout << "Green B:   " << G_B[50000] << std::endl;
-	std::cout << "Blue A:    " << B_A[50000] << std::endl;
-	std::cout << "Blue B:    " << B_B[50000] << std::endl;
+	//std::cout << "Red A:     " << R_A[50000] << std::endl;
+	//std::cout << "Red B:     " << R_B[50000] << std::endl;
+	//std::cout << "Green A:   " << G_A[50000] << std::endl;
+	//std::cout << "Green B:   " << G_B[50000] << std::endl;
+	//std::cout << "Blue A:    " << B_A[50000] << std::endl;
+	//std::cout << "Blue B:    " << B_B[50000] << std::endl;
 	//std::cout << "Green: " << val_green_a[100][100] << std::endl;
 	//std::cout << "Blue:  " << val_blue_a[100][100] << std::endl;
 
@@ -179,6 +207,8 @@ int main(int argc, char **argv)
 	cl_mem bufferB = clCreateBuffer(context, CL_MEM_READ_ONLY, matrix_mem_size, NULL, &error);
 	cl_mem bufferC = clCreateBuffer(context, CL_MEM_WRITE_ONLY, matrix_mem_size, NULL, &error);
 	cl_mem bufferD = clCreateBuffer(context, CL_MEM_READ_ONLY, matrix_mem_size, NULL, &error);
+	cl_mem bufferE = clCreateBuffer(context, CL_MEM_WRITE_ONLY, matrix_mem_size, NULL, &error);
+	cl_mem bufferF = clCreateBuffer(context, CL_MEM_WRITE_ONLY, matrix_mem_size, NULL, &error);
 
 	// Read the OpenCL kernel in from source file.
 	std::ifstream file(".\\Add.cl", std::ifstream::in);
@@ -210,60 +240,65 @@ int main(int argc, char **argv)
 
 	// Asynchronous write of data to GPU device.
 	tstart = time(0);
-	error = clEnqueueWriteBuffer(commandQueue, bufferA, CL_FALSE, 0, matrix_mem_size, R_A, 0, NULL, NULL);
-	error = clEnqueueWriteBuffer(commandQueue, bufferB, CL_FALSE, 0, matrix_mem_size, R_B, 0, NULL, NULL);
+	error = clEnqueueWriteBuffer(commandQueue, bufferA, CL_FALSE, 0, matrix_mem_size, FirstImageRed, 0, NULL, NULL);
+	error = clEnqueueWriteBuffer(commandQueue, bufferB, CL_FALSE, 0, matrix_mem_size, SecondImageRed, 0, NULL, NULL);
 
 	// Launch kernel.
 	error = clEnqueueNDRangeKernel(commandQueue, kernel, 1, NULL, &matrixSize, &localWorkSize, 0, NULL, NULL);
 
 	// Read back results and check accumulated errors.
-	error = clEnqueueReadBuffer(commandQueue, bufferC, CL_TRUE, 0, matrix_mem_size, R_C, 0, NULL, NULL);
+	error = clEnqueueReadBuffer(commandQueue, bufferC, CL_TRUE, 0, matrix_mem_size, ResultImageRed, 0, NULL, NULL);
 	tend = time(0);
 
-	std::cout << "Red C:     " << R_C[50000] << std::endl;
-	std::cout << "Time:    " << difftime(tend, tstart) << std::endl;
+	//std::cout << "Red C:     " << R_C[50000] << std::endl;
+	//std::cout << "Time:    " << difftime(tend, tstart) << std::endl;
 
 	// Asynchronous write of data to GPU device.
 	tstart = time(0);
-	error = clEnqueueWriteBuffer(commandQueue, bufferA, CL_FALSE, 0, matrix_mem_size, G_A, 0, NULL, NULL);
-	error = clEnqueueWriteBuffer(commandQueue, bufferB, CL_FALSE, 0, matrix_mem_size, G_B, 0, NULL, NULL);
+	error = clEnqueueWriteBuffer(commandQueue, bufferA, CL_FALSE, 0, matrix_mem_size, FirstImageGreen, 0, NULL, NULL);
+	error = clEnqueueWriteBuffer(commandQueue, bufferB, CL_FALSE, 0, matrix_mem_size, SecondImageGreen, 0, NULL, NULL);
 
 	// Launch kernel.
 	error = clEnqueueNDRangeKernel(commandQueue, kernel, 1, NULL, &matrixSize, &localWorkSize, 0, NULL, NULL);
 
 	// Read back results and check accumulated errors.
-	error = clEnqueueReadBuffer(commandQueue, bufferC, CL_TRUE, 0, matrix_mem_size, G_C, 0, NULL, NULL);
+	error = clEnqueueReadBuffer(commandQueue, bufferC, CL_TRUE, 0, matrix_mem_size, ResultImageGreen, 0, NULL, NULL);
 	tend = time(0);
 
-	std::cout << "Green C:   " << G_C[50000] << std::endl;
-	std::cout << "Time:    " << difftime(tend, tstart) << std::endl;
+	//std::cout << "Green C:   " << G_C[50000] << std::endl;
+	//std::cout << "Time:    " << difftime(tend, tstart) << std::endl;
 
 	// Asynchronous write of data to GPU device.
 	tstart = time(0);
-	error = clEnqueueWriteBuffer(commandQueue, bufferA, CL_FALSE, 0, matrix_mem_size, B_A, 0, NULL, NULL);
-	error = clEnqueueWriteBuffer(commandQueue, bufferB, CL_FALSE, 0, matrix_mem_size, B_B, 0, NULL, NULL);
+	error = clEnqueueWriteBuffer(commandQueue, bufferA, CL_FALSE, 0, matrix_mem_size, FirstImageBlue, 0, NULL, NULL);
+	error = clEnqueueWriteBuffer(commandQueue, bufferB, CL_FALSE, 0, matrix_mem_size, SecondImageBue, 0, NULL, NULL);
 
 	// Launch kernel.
 	error = clEnqueueNDRangeKernel(commandQueue, kernel, 1, NULL, &matrixSize, &localWorkSize, 0, NULL, NULL);
 
 	// Read back results and check accumulated errors.
-	error = clEnqueueReadBuffer(commandQueue, bufferC, CL_TRUE, 0, matrix_mem_size, B_C, 0, NULL, NULL);
+	error = clEnqueueReadBuffer(commandQueue, bufferC, CL_TRUE, 0, matrix_mem_size, ResultImageBlue, 0, NULL, NULL);
 	tend = time(0);
 
-	std::cout << "Blue C:   " << B_C[50000] << std::endl;
-	std::cout << "Time:    " << difftime(tend, tstart) << std::endl;
+	//std::cout << "Blue C:   " << B_C[50000] << std::endl;
+	//std::cout << "Time:    " << difftime(tend, tstart) << std::endl;
+
+	ExportToBmpFile(width, height, FirstImageRed, FirstImageGreen, FirstImageBlue, "RGBbefore.ppm");
+	ExportToBmpFile(width, height, ResultImageRed, ResultImageGreen, ResultImageBlue, "RGB.ppm");
 
 	//cl_int (*ptr_R_A)[wVectorSize][hVectorSize] = &R_A;
 
 	//delete_table(&ptr_R_A, hVectorSize);
-	free(R_A);
-	free(R_B);
-	free(G_A);
-	free(G_B);
-	free(B_A);
-	free(B_B);
+	//free(FirstImageRed);
+	free(SecondImageRed);
+	free(FirstImageGreen);
+	free(SecondImageGreen);
+	free(FirstImageBlue);
+	free(SecondImageBue);
 	std::cout << "Po usuwaniu" << std::endl;
 	cl_int* Y = (cl_int*)malloc(mem_matrix_size);
+	cl_int* Pb = (cl_int*)malloc(mem_matrix_size);
+	cl_int* Pr = (cl_int*)malloc(mem_matrix_size);
 
 	// Read the OpenCL kernel in from source file.
 	file.close();
@@ -291,23 +326,30 @@ int main(int argc, char **argv)
 	error = clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*)&bufferB);
 	error = clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*)&bufferD);
 	error = clSetKernelArg(kernel, 3, sizeof(cl_mem), (void*)&bufferC);
-	error = clSetKernelArg(kernel, 4, sizeof(cl_int), (void*)&matrixSize);
+	error = clSetKernelArg(kernel, 4, sizeof(cl_mem), (void*)&bufferE);
+	error = clSetKernelArg(kernel, 5, sizeof(cl_mem), (void*)&bufferF);
+	error = clSetKernelArg(kernel, 6, sizeof(cl_int), (void*)&matrixSize);
 
 	// Asynchronous write of data to GPU device.
 	tstart = time(0);
-	error = clEnqueueWriteBuffer(commandQueue, bufferA, CL_FALSE, 0, matrix_mem_size, R_C, 0, NULL, NULL);
-	error = clEnqueueWriteBuffer(commandQueue, bufferB, CL_FALSE, 0, matrix_mem_size, G_C, 0, NULL, NULL);
-	error = clEnqueueWriteBuffer(commandQueue, bufferD, CL_FALSE, 0, matrix_mem_size, B_C, 0, NULL, NULL);
+	error = clEnqueueWriteBuffer(commandQueue, bufferA, CL_FALSE, 0, matrix_mem_size, ResultImageRed, 0, NULL, NULL);
+	error = clEnqueueWriteBuffer(commandQueue, bufferB, CL_FALSE, 0, matrix_mem_size, ResultImageGreen, 0, NULL, NULL);
+	error = clEnqueueWriteBuffer(commandQueue, bufferD, CL_FALSE, 0, matrix_mem_size, ResultImageBlue, 0, NULL, NULL);
 
 	// Launch kernel.
 	error = clEnqueueNDRangeKernel(commandQueue, kernel, 1, NULL, &matrixSize, &localWorkSize, 0, NULL, NULL);
 
 	// Read back results and check accumulated errors.
 	error = clEnqueueReadBuffer(commandQueue, bufferC, CL_TRUE, 0, matrix_mem_size, Y, 0, NULL, NULL);
+	error = clEnqueueReadBuffer(commandQueue, bufferE, CL_TRUE, 0, matrix_mem_size, Pb, 0, NULL, NULL);
+	error = clEnqueueReadBuffer(commandQueue, bufferF, CL_TRUE, 0, matrix_mem_size, Pr, 0, NULL, NULL);
 	tend = time(0);
 
 	std::cout << "Y:   " << Y[50000] << std::endl;
 	std::cout << "Time:    " << difftime(tend, tstart) << std::endl;
+
+
+	ExportToBmpFile(width, height, Y, Pb, Pr, "ycbcr.ppm");
 
 	//Miejsce na binaryzacje
 	cl_int* Bin = (cl_int*)malloc(mem_matrix_size);
@@ -341,17 +383,6 @@ int main(int argc, char **argv)
 	tstart = time(0);
 	error = clEnqueueWriteBuffer(commandQueue, bufferA, CL_FALSE, 0, matrix_mem_size, Y, 0, NULL, NULL);
 
-	FILE *f = fopen("outY.ppm", "wb");
-	fprintf(f, "P6\n%i %i 255\n", width, height);
-	for (int y = 0; y<height; y++)
-		for (int x = 0; x<width; x++)
-		{
-			fputc(Y[y*width + x], f);   // 0 .. 255
-			fputc(Y[y*width + x], f); // 0 .. 255
-			fputc(Y[y*width + x], f);  // 0 .. 255
-		}
-	fclose(f);
-
 	// Launch kernel.
 	error = clEnqueueNDRangeKernel(commandQueue, kernel, 1, NULL, &matrixSize, &localWorkSize, 0, NULL, NULL);
 
@@ -364,16 +395,7 @@ int main(int argc, char **argv)
 
 	// Cleanup and free memory.
 	// Try to make bmp 
-	FILE *fa = fopen("out.ppm", "wb");
-	fprintf(fa, "P6\n%i %i 255\n", width, height);
-	for (int y = 0; y<height; y++)
-		for (int x = 0; x<width; x++)
-		{
-			fputc(Bin[y*width + x], fa);   // 0 .. 255
-			fputc(Bin[y*width + x], fa); // 0 .. 255
-			fputc(Bin[y*width + x], fa);  // 0 .. 255
-		}
-	fclose(fa);
+	ExportToBmpFile(width, height, Bin, Bin, Bin, "binary.ppm");
 	//Stop trying
 
 	free(Y);
