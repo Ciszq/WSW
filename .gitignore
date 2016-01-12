@@ -2,3 +2,6 @@
 *.ilk
 *.pdb
 *.opensdf
+src/TrainingCL/x64/
+*.sdf
+*.ppm
