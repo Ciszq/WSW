@@ -6,6 +6,6 @@ __kernel void Add(__global int* a, __global int* b, __global int* c, int size)
 	// Bound check.
 	if (n < size)
 	{
-		c[n] = a[n] - b[n];
+		c[n] = abs(a[n] - b[n]);
 	}
 }
