@@ -1,4 +1,4 @@
-__kernel void YCbCr(__global int* R, __global int* G, __global int* B, __global int* Y, __global int* Pb, __global int* Pr, int size)
+__kernel void YCbCr(__global int* R, __global int* G, __global int* B, __global int* Bin, int size)
 {
 	// Find position in global arrays.
 	int n = get_global_id(0);
@@ -12,12 +12,17 @@ __kernel void YCbCr(__global int* R, __global int* G, __global int* B, __global 
 		a31 = 0.5,
 		a32 = 0.418688,
 		a33 = 0.081312;
+	uint Y,Pb,Pr;
 
 	// Bound check.
 	if (n < size)
 	{
-		Y[n] = a11 * R[n] + a12 * G[n] + a13 * B[n];
-		Pb[n] = a21 * R[n] + a22 * G[n] + a23 * B[n];
-		Pr[n] = a31 * R[n] + a32 * G[n] + a33 * B[n];
+		Y = a11 * R[n] + a12 * G[n] + a13 * B[n];
+		Pb = a21 * R[n] + a22 * G[n] + a23 * B[n];
+		Pr = a31 * R[n] + a32 * G[n] + a33 * B[n];
+		if (Y > 100 || Pb > 100 || Pr > 100)
+			Bin[n]=255;
+		else
+			Bin[n]=0;
 	}
 }
