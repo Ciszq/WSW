@@ -128,8 +128,8 @@ int main(int argc, char **argv)
 	time_t tstart, tend;
 
 	// Allocate and initialize host arrays
-	const size_t hVectorSize = 1080;
-	const size_t wVectorSize = 1920;
+	const size_t hVectorSize = 1840;
+	const size_t wVectorSize = 3264;
 	const size_t matrixSize = wVectorSize * hVectorSize;
 	unsigned int matrix_mem_size = sizeof(cl_int) * matrixSize;
 	int matrix_size = hVectorSize*wVectorSize;
@@ -147,12 +147,10 @@ int main(int argc, char **argv)
 
 
 	// Read image filename from the command line (or set it to "img/parrot.ppm" if option '-i' is not provided)
-	const char* file_a = cimg_option("-i", cimg_imagepath "a.bmp", "Input image");
-	const char* file_b = cimg_option("-i", cimg_imagepath "b.bmp", "Input image");
+	const char* file_a = cimg_option("-i", cimg_imagepath "test.bmp", "Input image");
+	const char* file_b = cimg_option("-i", cimg_imagepath "test1.bmp", "Input image");
 	const CImg<unsigned char> image_a = CImg<>(file_a).normalize(0, 255);
 	const CImg<unsigned char> image_b = CImg<>(file_b).normalize(0, 255);
-
-	//CImgDisplay main_disp(image_a, "Color image (Try to move mouse pointer over)", 0);
 
 	const int width = image_a.width();
 	const int height = image_a.height();
@@ -231,9 +229,6 @@ int main(int argc, char **argv)
 	error = clEnqueueReadBuffer(commandQueue, bufferC, CL_TRUE, 0, matrix_mem_size, ResultImageRed, 0, NULL, NULL);
 	tend = time(0);
 
-	//std::cout << "Red C:     " << R_C[50000] << std::endl;
-	//std::cout << "Time:    " << difftime(tend, tstart) << std::endl;
-
 	// Asynchronous write of data to GPU device.
 	tstart = time(0);
 	error = clEnqueueWriteBuffer(commandQueue, bufferA, CL_FALSE, 0, matrix_mem_size, FirstImageGreen, 0, NULL, NULL);
@@ -245,9 +240,6 @@ int main(int argc, char **argv)
 	// Read back results and check accumulated errors.
 	error = clEnqueueReadBuffer(commandQueue, bufferC, CL_TRUE, 0, matrix_mem_size, ResultImageGreen, 0, NULL, NULL);
 	tend = time(0);
-
-	//std::cout << "Green C:   " << G_C[50000] << std::endl;
-	//std::cout << "Time:    " << difftime(tend, tstart) << std::endl;
 
 	// Asynchronous write of data to GPU device.
 	tstart = time(0);
@@ -261,12 +253,7 @@ int main(int argc, char **argv)
 	error = clEnqueueReadBuffer(commandQueue, bufferC, CL_TRUE, 0, matrix_mem_size, ResultImageBlue, 0, NULL, NULL);
 	tend = time(0);
 
-	//std::cout << "Blue C:   " << B_C[50000] << std::endl;
-	//std::cout << "Time:    " << difftime(tend, tstart) << std::endl;
-
 	ExportToBmpFile(width, height, ResultImageRed, ResultImageGreen, ResultImageBlue, "RGB.ppm");
-
-	//cl_int (*ptr_R_A)[wVectorSize][hVectorSize] = &R_A;
 
 	//delete_table(&ptr_R_A, hVectorSize);
 	free(FirstImageRed);
@@ -276,9 +263,9 @@ int main(int argc, char **argv)
 	free(FirstImageBlue);
 	free(SecondImageBue);
 	std::cout << "Po usuwaniu" << std::endl;
-	cl_int* Y = (cl_int*)malloc(mem_matrix_size);
-	cl_int* Pb = (cl_int*)malloc(mem_matrix_size);
-	cl_int* Pr = (cl_int*)malloc(mem_matrix_size);
+	cl_int Y[matrixSize];
+	cl_int Pb[matrixSize];
+	cl_int Pr[matrixSize];
 
 	// Read the OpenCL kernel in from source file.
 	file.close();
@@ -325,10 +312,6 @@ int main(int argc, char **argv)
 	error = clEnqueueReadBuffer(commandQueue, bufferF, CL_TRUE, 0, matrix_mem_size, Pr, 0, NULL, NULL);
 	tend = time(0);
 
-	std::cout << "Y:   " << Y[50000] << std::endl;
-	std::cout << "Time:    " << difftime(tend, tstart) << std::endl;
-
-
 	ExportToBmpFile(width, height, Y, Pb, Pr, "ycbcr.ppm");
 
 	//Miejsce na binaryzacje
@@ -356,12 +339,16 @@ int main(int argc, char **argv)
 
 	// Set the Argument values.
 	error = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void*)&bufferA);
-	error = clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*)&bufferC);
-	error = clSetKernelArg(kernel, 2, sizeof(cl_int), (void*)&matrixSize);
+	error = clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*)&bufferB);
+	error = clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*)&bufferD);
+	error = clSetKernelArg(kernel, 3, sizeof(cl_mem), (void*)&bufferC);
+	error = clSetKernelArg(kernel, 4, sizeof(cl_int), (void*)&matrixSize);
 
 	// Asynchronous write of data to GPU device.
 	tstart = time(0);
 	error = clEnqueueWriteBuffer(commandQueue, bufferA, CL_FALSE, 0, matrix_mem_size, Y, 0, NULL, NULL);
+	error = clEnqueueWriteBuffer(commandQueue, bufferB, CL_FALSE, 0, matrix_mem_size, Pb, 0, NULL, NULL);
+	error = clEnqueueWriteBuffer(commandQueue, bufferD, CL_FALSE, 0, matrix_mem_size, Pr, 0, NULL, NULL);
 
 	// Launch kernel.
 	error = clEnqueueNDRangeKernel(commandQueue, kernel, 1, NULL, &matrixSize, &localWorkSize, 0, NULL, NULL);
