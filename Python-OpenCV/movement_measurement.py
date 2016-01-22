@@ -1,4 +1,3 @@
-import datetime
 import numpy
 import cv2
 import os
@@ -52,34 +51,30 @@ class VisualMeasurement(object):
         self.logger.debug('Indices range: %d, %d' % (min_img_index, max_img_index))
 
         for img_index in range(min_img_index + 1, max_img_index):
-            t1 = datetime.datetime.now()
             self.logger.debug('Processing image number: %d' % img_index)
-            this_img = cv2.imread(os.path.join(path_to_images, dict_of_images[img_index]), cv2.IMREAD_GRAYSCALE)
-            prev_img = cv2.imread(os.path.join(path_to_images, dict_of_images[img_index - 1]), cv2.IMREAD_GRAYSCALE)
-            this_preprocessed = self.preprocessing_of_image(this_img)
+            img_list = self.process_one_image(dict_of_images[img_index], dict_of_images[img_index - 1],
+                                              kernel, path_to_images)
 
-            t2 = datetime.datetime.now()
-            exec_time = t2 - t1
-            self.logger.info('Img %d was processed in %s' % (img_index, exec_time))
-
-            prev_preprocessed = self.preprocessing_of_image(prev_img)
-
-            subtracted = cv2.subtract(this_preprocessed, prev_preprocessed)
-            eroded = cv2.erode(subtracted, kernel, iterations=1)
-            dilatated = cv2.dilate(eroded, kernel, iterations=1)
-            sub_edges = cv2.Canny(dilatated, 100, 200)
-
-            this_edges = cv2.Canny(this_preprocessed, 100, 200)
-            this_dilat = cv2.dilate(this_edges, kernel)
-
-            final_image = cv2.bitwise_and(sub_edges, this_dilat)
-
-            if max([max(elem) for elem in final_image]) == 255:
-                img_list = [this_img, prev_img, this_preprocessed, prev_preprocessed, subtracted, eroded, dilatated,
-                            sub_edges, this_edges, this_dilat, final_image]
+            if max([max(elem) for elem in img_list[10]]) == 255:
                 titles = ['Org', 'Prev', 'Preproc', 'PrevPreproc', 'SUBTRACTED', 'SubEroded', 'SubDilat',
                           'SubEdges', 'PrevEdges', 'PrevDilat', 'FINAL']
                 self.plot_images(img_list, titles)
+
+    def process_one_image(self, img_name, prev_img_name, kernel, path_to_images):
+        this_img = cv2.imread(os.path.join(path_to_images, img_name), cv2.IMREAD_GRAYSCALE)
+        prev_img = cv2.imread(os.path.join(path_to_images, prev_img_name), cv2.IMREAD_GRAYSCALE)
+        this_preprocessed = self.preprocessing_of_image(this_img)
+        prev_preprocessed = self.preprocessing_of_image(prev_img)
+        subtracted = cv2.subtract(this_preprocessed, prev_preprocessed)
+        eroded = cv2.erode(subtracted, kernel, iterations=1)
+        dilatated = cv2.dilate(eroded, kernel, iterations=1)
+        sub_edges = cv2.Canny(dilatated, 100, 200)
+        this_edges = cv2.Canny(this_preprocessed, 100, 200)
+        this_dilat = cv2.dilate(this_edges, kernel)
+        final_image = cv2.bitwise_and(sub_edges, this_dilat)
+        img_list = [this_img, prev_img, this_preprocessed, prev_preprocessed, subtracted, eroded, dilatated,
+                    sub_edges, this_edges, this_dilat, final_image]
+        return img_list
 
     @staticmethod
     def preprocessing_of_image(img):
