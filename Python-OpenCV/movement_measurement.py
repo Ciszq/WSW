@@ -105,7 +105,7 @@ def main():
     timer = timeit.Timer('path_to_images = "../fan_captured_images/FanImages_10kHz";\
     vis_meas = VisualMeasurement("INFO");\
     vis_meas.object_distinction(path_to_images)', 'gc.enable(); from __main__ import VisualMeasurement')
-    print timer.timeit(1)
+    print timer.repeat(5, 1)
     # path_to_images = "../fan_captured_images/FanImages_10kHz"
     # vis_meas = VisualMeasurement('DEBUG')
     # vis_meas.simple_processing_images(path_to_images)
