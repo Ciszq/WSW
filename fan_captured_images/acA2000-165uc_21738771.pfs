@@ -53,9 +53,9 @@ ColorTransformationValueSelector	Gain00
 ExposureAuto	Off
 ExposureMode	Timed
 ExposureTime	400.0
-AcquisitionBurstFrameCount	1
+AcquisitionBurstFrameCount	500
 TriggerSelector	FrameBurstStart
-TriggerMode	Off
+TriggerMode	On
 TriggerSelector	FrameStart
 TriggerMode	Off
 TriggerSelector	FrameStart
@@ -70,8 +70,8 @@ TriggerSelector	FrameStart
 TriggerActivation	RisingEdge
 TriggerSelector	FrameStart
 TriggerDelay	0
-AcquisitionFrameRateEnable	0
-AcquisitionFrameRate	10000.00000
+AcquisitionFrameRateEnable	1
+AcquisitionFrameRate	1000.00000
 AutoTargetBrightness	0.50196
 AutoFunctionProfile	MinimizeExposureTime
 AutoGainLowerLimit	0.00000
