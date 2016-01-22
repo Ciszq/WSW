@@ -2,6 +2,7 @@ import numpy
 import cv2
 import os
 import logging
+import timeit
 from matplotlib import pyplot as plt
 
 
@@ -55,10 +56,10 @@ class VisualMeasurement(object):
             img_list = self.process_one_image(dict_of_images[img_index], dict_of_images[img_index - 1],
                                               kernel, path_to_images)
 
-            if max([max(elem) for elem in img_list[10]]) == 255:
-                titles = ['Org', 'Prev', 'Preproc', 'PrevPreproc', 'SUBTRACTED', 'SubEroded', 'SubDilat',
-                          'SubEdges', 'PrevEdges', 'PrevDilat', 'FINAL']
-                self.plot_images(img_list, titles)
+            # if max([max(elem) for elem in img_list[10]]) == 255:
+            #     titles = ['Org', 'Prev', 'Preproc', 'PrevPreproc', 'SUBTRACTED', 'SubEroded', 'SubDilat',
+            #               'SubEdges', 'PrevEdges', 'PrevDilat', 'FINAL']
+            #     self.plot_images(img_list, titles)
 
     def process_one_image(self, img_name, prev_img_name, kernel, path_to_images):
         this_img = cv2.imread(os.path.join(path_to_images, img_name), cv2.IMREAD_GRAYSCALE)
@@ -101,10 +102,14 @@ class VisualMeasurement(object):
 
 
 def main():
-    path_to_images = "../fan_captured_images/FanImages_10kHz"
-    vis_meas = VisualMeasurement('DEBUG')
+    timer = timeit.Timer('path_to_images = "../fan_captured_images/FanImages_10kHz";\
+    vis_meas = VisualMeasurement("INFO");\
+    vis_meas.object_distinction(path_to_images)', 'gc.enable(); from __main__ import VisualMeasurement')
+    print timer.timeit(1)
+    # path_to_images = "../fan_captured_images/FanImages_10kHz"
+    # vis_meas = VisualMeasurement('DEBUG')
     # vis_meas.simple_processing_images(path_to_images)
-    vis_meas.object_distinction(path_to_images)
+    # vis_meas.object_distinction(path_to_images)
 
 
 if __name__ == '__main__':
