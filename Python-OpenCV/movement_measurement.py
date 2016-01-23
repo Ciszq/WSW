@@ -56,10 +56,10 @@ class VisualMeasurement(object):
             img_list = self.process_one_image(dict_of_images[img_index], dict_of_images[img_index - 1],
                                               kernel, path_to_images)
 
-            # if max([max(elem) for elem in img_list[10]]) == 255:
-            #     titles = ['Org', 'Prev', 'Preproc', 'PrevPreproc', 'SUBTRACTED', 'SubEroded', 'SubDilat',
-            #               'SubEdges', 'PrevEdges', 'PrevDilat', 'FINAL']
-            #     self.plot_images(img_list, titles)
+            if max([max(elem) for elem in img_list[10]]) == 255:
+                titles = ['B', 'P', 'B_Pre', 'P_Pre', 'R', 'R_Er', 'R_Dyl',
+                          'R_Kraw', 'B_Kraw', 'B_Dyl', 'WYNIK']
+                self.plot_images(img_list, titles)
 
     def process_one_image(self, img_name, prev_img_name, kernel, path_to_images):
         this_img = cv2.imread(os.path.join(path_to_images, img_name), cv2.IMREAD_GRAYSCALE)
@@ -94,22 +94,26 @@ class VisualMeasurement(object):
         if len(titles_list) != images_number:
             raise ValueError('Wrong titles number. Got %d images and %d titles.' % (images_number, len(titles_list)))
         for i, image in enumerate(images_list):
-            plt.subplot(2, (images_number + 1) / 2, i + 1)
+            plt.subplot(3, (images_number + 2) / 3, i + 1)
             plt.gray()
             plt.imshow(image)
+            plt.xticks([])
+            plt.yticks([])
             plt.title(titles_list[i])
         plt.show()
 
 
 def main():
-    timer = timeit.Timer('path_to_images = "../fan_captured_images/FanImages_10kHz";\
-    vis_meas = VisualMeasurement("INFO");\
-    vis_meas.object_distinction(path_to_images)', 'gc.enable(); from __main__ import VisualMeasurement')
-    print timer.repeat(5, 1)
-    # path_to_images = "../fan_captured_images/FanImages_10kHz"
-    # vis_meas = VisualMeasurement('DEBUG')
+    # timer = timeit.Timer('path_to_images = "../fan_captured_images/FanImages_10kHz";\
+    # vis_meas = VisualMeasurement("INFO");\
+    # vis_meas.object_distinction(path_to_images)', 'gc.enable(); from __main__ import VisualMeasurement')
+    # times = timer.repeat(10, 1)
+    # print 'Average time from 10 executions:', sum(times)/len(times)
+    path_to_images = "../fan_captured_images/FanImages_10kHz"
+    vis_meas = VisualMeasurement('DEBUG')
+    vis_meas.object_distinction(path_to_images)
+
     # vis_meas.simple_processing_images(path_to_images)
-    # vis_meas.object_distinction(path_to_images)
 
 
 if __name__ == '__main__':
