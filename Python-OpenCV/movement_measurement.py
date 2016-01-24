@@ -4,10 +4,11 @@ import os
 import logging
 import timeit
 from matplotlib import pyplot as plt
+import argparse
 
 
 class VisualMeasurement(object):
-    def __init__(self, log_level, f_acq=10000.0, file_logs=False):
+    def __init__(self, log_level, f_acq=10000.0, file_logs=False, visualisation=False):
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(log_level)
         formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
@@ -16,6 +17,7 @@ class VisualMeasurement(object):
         ch.setFormatter(formatter)
         self.logger.addHandler(ch)
         self.f_acq = f_acq
+        self.visualisation = visualisation
         self.prev_image = None
         self.prev_marker_index = None
         if file_logs:
@@ -62,13 +64,14 @@ class VisualMeasurement(object):
             if max([max(elem) for elem in img_list[8]]) == 255:
                 if self.prev_marker_index is None:
                     self.prev_marker_index = img_index
-                elif img_index - self.prev_marker_index > 10:
+                elif img_index - self.prev_marker_index > 4:
                     freq, speed = self.calculate_speed(img_index)
                     self.logger.info('Calculated speed: %f RPM, frequency: %f Hz.' % (speed, freq))
                     self.prev_marker_index = img_index
-                titles = ['B', 'B_Pre', 'R', 'R_Er', 'R_Dyl',
-                          'R_Kraw', 'B_Kraw', 'B_Dyl', 'WYNIK']
-                self.plot_images(img_list, titles)
+                if self.visualisation:
+                    titles = ['B', 'B_Pre', 'R', 'R_Er', 'R_Dyl',
+                              'R_Kraw', 'B_Kraw', 'B_Dyl', 'WYNIK']
+                    self.plot_images(img_list, titles)
             self.prev_image = img_list[1]
 
     def process_one_image(self, img_name, prev_img_name, kernel, path_to_images):
@@ -91,7 +94,7 @@ class VisualMeasurement(object):
     def calculate_speed(self, current_index):
         difference = current_index - self.prev_marker_index
         f_rot = self.f_acq / difference
-        print 'DIFF', difference, 'F ROT', f_rot
+        # print 'DIFF', difference, 'F ROT', f_rot
         v_rot = f_rot * 60
         return f_rot, v_rot
 
@@ -122,15 +125,24 @@ class VisualMeasurement(object):
 
 
 def main():
+    parser = argparse.ArgumentParser('Calculate rotation speed of a computer fan from a series of images.')
+    parser.add_argument('path_to_images', type=str, help='Path to where the fan images are kept.')
+    parser.add_argument('--f_acq', '-f', type=float, default=1000.0, help='Frequency of acquisition (in Hz).')
+    parser.add_argument('--loglevel', '-l', type=str, default='INFO',
+                        help='Wanted log level. One of "DEBUG", "INFO" or "WARNING".')
+    parser.add_argument('--visualisation', '-v', action="store_true", default=False,
+                        help='Adds visualisation every time a marker appears.')
+    args = parser.parse_args()
+
     # timer = timeit.Timer('path_to_images = "../fan_captured_images/FanImages_10kHz";\
     # vis_meas = VisualMeasurement("INFO");\
     # vis_meas.object_distinction(path_to_images)', 'gc.enable(); from __main__ import VisualMeasurement')
     # times = timer.repeat(10, 1)
     # print 'Average time from 10 executions:', sum(times)/len(times)
-    path_to_images = "../fan_captured_images/FanImages_10kHz"
-    f = 10000.0
-    vis_meas = VisualMeasurement('DEBUG', f_acq=f)
-    vis_meas.object_distinction(path_to_images)
+    # path_to_images = "../fan_captured_images/FanImages_10kHz"
+    # f = 10000.0
+    vis_meas = VisualMeasurement(args.loglevel, f_acq=args.f_acq, visualisation=args.visualisation)
+    vis_meas.object_distinction(args.path_to_images)
 
     # vis_meas.simple_processing_images(path_to_images)
 
